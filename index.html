@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gold Clicker</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: white;
+    background:
+        radial-gradient(circle at 50% 20%, #3b2a70 0%, #171329 40%, #080812 100%);
+    overflow: hidden;
+}
+
+.app {
+    max-width: 500px;
+    min-height: 100vh;
+    margin: auto;
+    padding: 25px 18px;
+    text-align: center;
+}
+
+.logo {
+    font-size: 30px;
+    font-weight: 900;
+    margin-top: 10px;
+    text-shadow: 0 0 20px #b78cff;
+}
+
+.subtitle {
+    color: #aaa7c7;
+    margin-top: 5px;
+}
+
+.balance {
+    margin: 30px auto 15px;
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+}
+
+.balance-title {
+    color: #aaa7c7;
+    font-size: 14px;
+}
+
+#clicks {
+    font-size: 34px;
+    font-weight: 900;
+    margin-top: 5px;
+}
+
+.click-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 30px 0;
+}
+
+.click-button {
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    border: 8px solid rgba(255,255,255,0.15);
+    background: linear-gradient(145deg, #ffd86b, #ff9f1c);
+    box-shadow:
+        0 0 30px rgba(255,174,0,0.55),
+        inset 0 0 25px rgba(255,255,255,0.4);
+    color: #432400;
+    font-size: 30px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.08s;
+    user-select: none;
+}
+
+.click-button:active {
+    transform: scale(0.92);
+}
+
+.coin {
+    font-size: 65px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.stats {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.stat {
+    flex: 1;
+    padding: 14px 8px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.07);
+}
+
+.stat-number {
+    font-size: 19px;
+    font-weight: bold;
+}
+
+.stat-name {
+    font-size: 12px;
+    color: #aaa7c7;
+    margin-top: 4px;
+}
+
+.exchange {
+    margin-top: 18px;
+    padding: 18px;
+    border-radius: 22px;
+    background: rgba(255,255,255,0.07);
+}
+
+.exchange h2 {
+    margin: 0 0 14px;
+}
+
+.exchange button {
+    width: 100%;
+    margin-top: 9px;
+    padding: 14px;
+    border: 0;
+    border-radius: 14px;
+    background: #6d4aff;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.exchange button:disabled {
+    opacity: 0.35;
+}
+
+.message {
+    min-height: 22px;
+    margin-top: 10px;
+    color: #c8c3ff;
+    font-size: 14px;
+}
+
+.float {
+    position: fixed;
+    pointer-events: none;
+    font-size: 22px;
+    font-weight: bold;
+    animation: up 0.7s forwards;
+}
+
+@keyframes up {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-80px);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="logo">⚡ GOLD CLICKER</div>
+    <div class="subtitle">Кликай • Накапливай • Обменивай</div>
+
+    <div class="balance">
+        <div class="balance-title">ТВОИ КЛИКИ</div>
+        <div id="clicks">0</div>
+    </div>
+
+    <div class="click-area">
+        <button class="click-button" id="clickButton">
+            <span class="coin">🪙</span>
+            CLICK
+        </button>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-number" id="today">0</div>
+            <div class="stat-name">ЗА СЕССИЮ</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number" id="gold">0</div>
+            <div class="stat-name">GOLD</div>
+        </div>
+    </div>
+
+    <div class="exchange">
+        <h2>💰 Обмен</h2>
+
+        <button id="exchange500">
+            500 000 кликов → 500 Gold
+        </button>
+
+        <button id="exchange100">
+            1 000 000 кликов → 100 Gold
+        </button>
+
+        <div class="message" id="message"></div>
+    </div>
+
+</div>
+
+<script>
+let clicks = Number(localStorage.getItem("clicks")) || 0;
+let gold = Number(localStorage.getItem("gold")) || 0;
+let sessionClicks = 0;
+
+const clicksElement = document.getElementById("clicks");
+const goldElement = document.getElementById("gold");
+const todayElement = document.getElementById("today");
+const message = document.getElementById("message");
+
+function update() {
+    clicksElement.textContent = clicks.toLocaleString("ru-RU");
+    goldElement.textContent = gold.toLocaleString("ru-RU");
+    todayElement.textContent = sessionClicks.toLocaleString("ru-RU");
+
+    document.getElementById("exchange500").disabled = clicks < 500000;
+    document.getElementById("exchange100").disabled = clicks < 1000000;
+
+    localStorage.setItem("clicks", clicks);
+    localStorage.setItem("gold", gold);
+}
+
+document.getElementById("clickButton").addEventListener("click", function(e) {
+
+    clicks++;
+    sessionClicks++;
+
+    const floating = document.createElement("div");
+    floating.className = "float";
+    floating.textContent = "+1";
+
+    floating.style.left = e.clientX + "px";
+    floating.style.top = e.clientY + "px";
+
+    document.body.appendChild(floating);
+
+    setTimeout(() => floating.remove(), 700);
+
+    update();
+});
+
+document.getElementById("exchange500").addEventListener("click", function() {
+
+    if (clicks >= 500000) {
+        clicks -= 500000;
+        gold += 500;
+
+        message.textContent = "✅ Обмен выполнен: +500 Gold";
+        update();
+    }
+});
+
+document.getElementById("exchange100").addEventListener("click", function() {
+
+    if (clicks >= 1000000) {
+        clicks -= 1000000;
+        gold += 100;
+
+        message.textContent = "✅ Обмен выполнен: +100 Gold";
+        update();
+    }
+});
+
+update();
+</script>
+
+</body>
+</html>
